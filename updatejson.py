@@ -4,6 +4,7 @@ from copy import deepcopy
 from datetime import datetime, UTC
 from pathlib import Path
 from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 
 GRADLE_URL = "https://raw.githubusercontent.com/soctrungkien/ZaliaBetter/main/ZalithLauncher/gradle.properties"
 README_URL = "https://raw.githubusercontent.com/soctrungkien/ZaliaBetter/main/README.md"
@@ -21,6 +22,31 @@ def download_text(url: str) -> str:
 
     with urlopen(req) as response:
         return response.read().decode("utf-8")
+
+
+def get_file_size(url: str) -> int:
+    try:
+        req = Request(
+            url,
+            headers={
+                "User-Agent": "Mozilla/5.0"
+            },
+            method="HEAD"
+        )
+
+        with urlopen(req) as response:
+            return int(
+                response.headers.get(
+                    "Content-Length",
+                    0
+                )
+            )
+
+    except HTTPError:
+        return 0
+
+    except Exception:
+        return 0
 
 
 def parse_properties(text: str) -> dict:
@@ -157,11 +183,16 @@ VERSION = props.get(
     "0.0.0"
 )
 
-VERSION_CODE = int(
+REAL_VERSION_CODE = int(
     props.get(
         "launcher_version_code",
         "1"
     )
+)
+
+VERSION_CODE = max(
+    1,
+    REAL_VERSION_CODE - 999999
 )
 
 BASE_RELEASE_URL = (
@@ -172,6 +203,53 @@ created_at = datetime.now(
     UTC
 ).strftime("%Y-%m-%dT%H:%M:%SZ")
 
+
+def create_file_entry(
+    filename: str,
+    arch: str
+) -> dict:
+
+    file_url = (
+        f"{BASE_RELEASE_URL}/{filename}"
+    )
+
+    print(f"Checking size: {filename}")
+
+    return {
+        "file_name": filename,
+        "uri": file_url,
+        "arch": arch,
+        "size": get_file_size(file_url)
+    }
+
+
+files = [
+    create_file_entry(
+        f"{LAUNCHER_NAME}-{VERSION}-arm64-v8a.apk",
+        "arm64"
+    ),
+
+    create_file_entry(
+        f"{LAUNCHER_NAME}-{VERSION}-armeabi-v7a.apk",
+        "arm"
+    ),
+
+    create_file_entry(
+        f"{LAUNCHER_NAME}-{VERSION}-x86.apk",
+        "x86"
+    ),
+
+    create_file_entry(
+        f"{LAUNCHER_NAME}-{VERSION}-x86_64.apk",
+        "x86_64"
+    ),
+
+    create_file_entry(
+        f"{LAUNCHER_NAME}-{VERSION}.apk",
+        "all"
+    )
+]
+
 base_json = {
     "code": VERSION_CODE,
 
@@ -181,53 +259,26 @@ base_json = {
 
     "default_cloud_drive": {
         "language": "en",
+
         "link": f"{HOME_URL}/releases",
+
         "links": [
             {
                 "name": "GitHub Releases",
+
                 "link": f"{HOME_URL}/releases"
             }
         ]
     },
 
-    "files": [
-        {
-            "file_name": f"{LAUNCHER_NAME}-{VERSION}-arm64-v8a.apk",
-            "uri": f"{BASE_RELEASE_URL}/{LAUNCHER_NAME}-{VERSION}-arm64-v8a.apk",
-            "arch": "arm64",
-            "size": 0
-        },
-        {
-            "file_name": f"{LAUNCHER_NAME}-{VERSION}-armeabi-v7a.apk",
-            "uri": f"{BASE_RELEASE_URL}/{LAUNCHER_NAME}-{VERSION}-armeabi-v7a.apk",
-            "arch": "arm",
-            "size": 0
-        },
-        {
-            "file_name": f"{LAUNCHER_NAME}-{VERSION}-x86.apk",
-            "uri": f"{BASE_RELEASE_URL}/{LAUNCHER_NAME}-{VERSION}-x86.apk",
-            "arch": "x86",
-            "size": 0
-        },
-        {
-            "file_name": f"{LAUNCHER_NAME}-{VERSION}-x86_64.apk",
-            "uri": f"{BASE_RELEASE_URL}/{LAUNCHER_NAME}-{VERSION}-x86_64.apk",
-            "arch": "x86_64",
-            "size": 0
-        },
-        {
-            "file_name": f"{LAUNCHER_NAME}-{VERSION}.apk",
-            "uri": f"{BASE_RELEASE_URL}/{LAUNCHER_NAME}-{VERSION}.apk",
-            "arch": "all",
-            "size": 0
-        }
-    ]
+    "files": files
 }
 
 latest_version = deepcopy(base_json)
 
 latest_version["default_body"] = {
     "language": "en",
+
     "chunks": markdown_to_chunks(
         readme_text
     )
@@ -239,6 +290,7 @@ latest_version_md = deepcopy(base_json)
 
 latest_version_md["default_body"] = {
     "language": "en",
+
     "markdown": readme_text
 }
 
@@ -285,10 +337,14 @@ with open(
 
 print()
 print(f"Launcher: {APP_NAME}")
+print(f"Short Name: {SHORT_NAME}")
 print(f"Version: {VERSION}")
-print(f"Version Code: {VERSION_CODE}")
+print(f"Real Version Code: {REAL_VERSION_CODE}")
+print(f"Fake Version Code: {VERSION_CODE}")
 
 print()
 print("Generated:")
+
 print(f" - {latest_version_path}")
+
 print(f" - {latest_version_md_path}")
