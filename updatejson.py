@@ -183,16 +183,11 @@ VERSION = props.get(
     "0.0.0"
 )
 
-REAL_VERSION_CODE = int(
+VERSION_CODE = int(
     props.get(
         "launcher_version_code",
         "1"
     )
-)
-
-VERSION_CODE = max(
-    1,
-    REAL_VERSION_CODE - 999999
 )
 
 BASE_RELEASE_URL = (
