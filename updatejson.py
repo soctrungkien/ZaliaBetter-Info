@@ -216,8 +216,10 @@ latest_version = deepcopy(base_json)
 
 latest_version["default_body"] = {
     "language": "en",
-    "chunks": markdown_to_chunks(readme_text)
+    "markdown": readme_text
 }
+
+latest_version["bodies"] = []
 
 latest_version_md = deepcopy(base_json)
 
