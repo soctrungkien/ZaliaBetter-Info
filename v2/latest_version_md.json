@@ -1,7 +1,7 @@
 {
-    "code": 2000,
-    "version": "2.0.0",
-    "created_at": "2026-05-23T14:18:26Z",
+    "code": 1,
+    "version": "2.4.4",
+    "created_at": "2026-05-23T14:56:21Z",
     "default_cloud_drive": {
         "language": "en",
         "link": "https://github.com/soctrungkien/ZaliaBetter/releases",
@@ -17,31 +17,31 @@
             "file_name": "ZaliaBetter-2.4.4-arm64-v8a.apk",
             "uri": "https://github.com/soctrungkien/ZaliaBetter/releases/download/2.4.4/ZaliaBetter-2.4.4-arm64-v8a.apk",
             "arch": "arm64",
-            "size": 0
+            "size": 186930013
         },
         {
             "file_name": "ZaliaBetter-2.4.4-armeabi-v7a.apk",
             "uri": "https://github.com/soctrungkien/ZaliaBetter/releases/download/2.4.4/ZaliaBetter-2.4.4-armeabi-v7a.apk",
             "arch": "arm",
-            "size": 0
+            "size": 180586274
         },
         {
             "file_name": "ZaliaBetter-2.4.4-x86.apk",
             "uri": "https://github.com/soctrungkien/ZaliaBetter/releases/download/2.4.4/ZaliaBetter-2.4.4-x86.apk",
             "arch": "x86",
-            "size": 0
+            "size": 172022599
         },
         {
             "file_name": "ZaliaBetter-2.4.4-x86_64.apk",
             "uri": "https://github.com/soctrungkien/ZaliaBetter/releases/download/2.4.4/ZaliaBetter-2.4.4-x86_64.apk",
             "arch": "x86_64",
-            "size": 0
+            "size": 191068791
         },
         {
             "file_name": "ZaliaBetter-2.4.4.apk",
             "uri": "https://github.com/soctrungkien/ZaliaBetter/releases/download/2.4.4/ZaliaBetter-2.4.4.apk",
             "arch": "all",
-            "size": 0
+            "size": 323285901
         }
     ],
     "default_body": {
