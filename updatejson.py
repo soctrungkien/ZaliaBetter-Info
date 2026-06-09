@@ -1,14 +1,15 @@
 import json
 import re
 from copy import deepcopy
-from datetime import datetime, UTC
 from pathlib import Path
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 
 GRADLE_URL = "https://raw.githubusercontent.com/soctrungkien/ZaliaBetter/main/ZalithLauncher/gradle.properties"
-README_URL = "https://raw.githubusercontent.com/soctrungkien/ZaliaBetter/main/README.md"
-RELEASE_API_URL = "https://api.github.com/repos/soctrungkien/ZaliaBetter/releases/tags/{tag}"
+
+RELEASE_API_URL = (
+    "https://api.github.com/repos/soctrungkien/ZaliaBetter/releases/tags/{tag}"
+)
 
 OUTPUT_DIR = Path("v2")
 
@@ -104,7 +105,7 @@ def markdown_to_chunks(markdown_text: str) -> list:
 
         if current_chunk is None:
             current_chunk = {
-                "title": "README",
+                "title": "Release Notes",
                 "texts": []
             }
 
@@ -146,7 +147,9 @@ def markdown_to_chunks(markdown_text: str) -> list:
         if links:
             text_obj["links"] = links
 
-        current_chunk["texts"].append(text_obj)
+        current_chunk["texts"].append(
+            text_obj
+        )
 
     return chunks
 
@@ -170,25 +173,14 @@ def get_release_data(version: str) -> dict:
 
 
 print("Downloading gradle.properties...")
-gradle_text = download_text(GRADLE_URL)
 
-print("Downloading release data...")
-
-release_data = get_release_data(
-    VERSION
+gradle_text = download_text(
+    GRADLE_URL
 )
 
-readme_text = release_data.get(
-    "body",
-    ""
+props = parse_properties(
+    gradle_text
 )
-
-created_at = release_data.get(
-    "published_at",
-    ""
-)
-
-props = parse_properties(gradle_text)
 
 LAUNCHER_NAME = props.get(
     "launcher_name",
@@ -226,6 +218,23 @@ BASE_RELEASE_URL = (
     f"{HOME_URL}/releases/download/{VERSION}"
 )
 
+print("Downloading release data...")
+
+release_data = get_release_data(
+    VERSION
+)
+
+release_body = release_data.get(
+    "body",
+    ""
+)
+
+created_at = release_data.get(
+    "published_at",
+    ""
+)
+
+
 def create_file_entry(
     filename: str,
     arch: str
@@ -235,13 +244,17 @@ def create_file_entry(
         f"{BASE_RELEASE_URL}/{filename}"
     )
 
-    print(f"Checking size: {filename}")
+    print(
+        f"Checking size: {filename}"
+    )
 
     return {
         "file_name": filename,
         "uri": file_url,
         "arch": arch,
-        "size": get_file_size(file_url)
+        "size": get_file_size(
+            file_url
+        )
     }
 
 
@@ -296,24 +309,28 @@ base_json = {
     "files": files
 }
 
-latest_version = deepcopy(base_json)
+latest_version = deepcopy(
+    base_json
+)
 
 latest_version["default_body"] = {
     "language": "en",
 
     "chunks": markdown_to_chunks(
-        readme_text
+        release_body
     )
 }
 
 latest_version["bodies"] = []
 
-latest_version_md = deepcopy(base_json)
+latest_version_md = deepcopy(
+    base_json
+)
 
 latest_version_md["default_body"] = {
     "language": "en",
 
-    "markdown": readme_text
+    "markdown": release_body
 }
 
 latest_version_md["bodies"] = []
@@ -358,14 +375,35 @@ with open(
     )
 
 print()
-print(f"Launcher: {APP_NAME}")
-print(f"Short Name: {SHORT_NAME}")
-print(f"Version: {VERSION}")
-print(f"Version Code: {VERSION_CODE}")
+
+print(
+    f"Launcher: {APP_NAME}"
+)
+
+print(
+    f"Short Name: {SHORT_NAME}"
+)
+
+print(
+    f"Version: {VERSION}"
+)
+
+print(
+    f"Version Code: {VERSION_CODE}"
+)
+
+print(
+    f"Created At: {created_at}"
+)
 
 print()
+
 print("Generated:")
 
-print(f" - {latest_version_path}")
+print(
+    f" - {latest_version_path}"
+)
 
-print(f" - {latest_version_md_path}")
+print(
+    f" - {latest_version_md_path}"
+)
