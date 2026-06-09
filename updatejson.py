@@ -8,6 +8,7 @@ from urllib.error import HTTPError
 
 GRADLE_URL = "https://raw.githubusercontent.com/soctrungkien/ZaliaBetter/main/ZalithLauncher/gradle.properties"
 README_URL = "https://raw.githubusercontent.com/soctrungkien/ZaliaBetter/main/README.md"
+RELEASE_API_URL = "https://api.github.com/repos/soctrungkien/ZaliaBetter/releases/tags/{tag}"
 
 OUTPUT_DIR = Path("v2")
 
@@ -150,11 +151,42 @@ def markdown_to_chunks(markdown_text: str) -> list:
     return chunks
 
 
+def get_release_data(version: str) -> dict:
+    url = RELEASE_API_URL.format(
+        tag=version
+    )
+
+    req = Request(
+        url,
+        headers={
+            "User-Agent": "Mozilla/5.0"
+        }
+    )
+
+    with urlopen(req) as response:
+        return json.loads(
+            response.read().decode("utf-8")
+        )
+
+
 print("Downloading gradle.properties...")
 gradle_text = download_text(GRADLE_URL)
 
-print("Downloading README.md...")
-readme_text = download_text(README_URL)
+print("Downloading release data...")
+
+release_data = get_release_data(
+    VERSION
+)
+
+readme_text = release_data.get(
+    "body",
+    ""
+)
+
+created_at = release_data.get(
+    "published_at",
+    ""
+)
 
 props = parse_properties(gradle_text)
 
@@ -193,11 +225,6 @@ VERSION_CODE = int(
 BASE_RELEASE_URL = (
     f"{HOME_URL}/releases/download/{VERSION}"
 )
-
-created_at = datetime.now(
-    UTC
-).strftime("%Y-%m-%dT%H:%M:%SZ")
-
 
 def create_file_entry(
     filename: str,
