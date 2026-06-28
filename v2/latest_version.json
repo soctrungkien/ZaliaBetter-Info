@@ -1,7 +1,7 @@
 {
-    "code": 200029,
-    "version": "2.4.7",
-    "created_at": "2026-06-09T12:21:15Z",
+    "code": 200032,
+    "version": "2.4.9_hotfix1",
+    "created_at": "2026-06-28T05:53:50Z",
     "default_cloud_drive": {
         "language": "en",
         "link": "https://github.com/soctrungkien/ZaliaBetter/releases",
@@ -14,34 +14,34 @@
     },
     "files": [
         {
-            "file_name": "ZaliaBetter-2.4.7-arm64-v8a.apk",
-            "uri": "https://github.com/soctrungkien/ZaliaBetter/releases/download/2.4.7/ZaliaBetter-2.4.7-arm64-v8a.apk",
+            "file_name": "ZaliaBetter-2.4.9_hotfix1-arm64-v8a.apk",
+            "uri": "https://github.com/soctrungkien/ZaliaBetter/releases/download/2.4.9_hotfix1/ZaliaBetter-2.4.9_hotfix1-arm64-v8a.apk",
             "arch": "arm64",
-            "size": 159083707
+            "size": 159097654
         },
         {
-            "file_name": "ZaliaBetter-2.4.7-armeabi-v7a.apk",
-            "uri": "https://github.com/soctrungkien/ZaliaBetter/releases/download/2.4.7/ZaliaBetter-2.4.7-armeabi-v7a.apk",
+            "file_name": "ZaliaBetter-2.4.9_hotfix1-armeabi-v7a.apk",
+            "uri": "https://github.com/soctrungkien/ZaliaBetter/releases/download/2.4.9_hotfix1/ZaliaBetter-2.4.9_hotfix1-armeabi-v7a.apk",
             "arch": "arm",
-            "size": 151511570
+            "size": 151525385
         },
         {
-            "file_name": "ZaliaBetter-2.4.7-x86.apk",
-            "uri": "https://github.com/soctrungkien/ZaliaBetter/releases/download/2.4.7/ZaliaBetter-2.4.7-x86.apk",
+            "file_name": "ZaliaBetter-2.4.9_hotfix1-x86.apk",
+            "uri": "https://github.com/soctrungkien/ZaliaBetter/releases/download/2.4.9_hotfix1/ZaliaBetter-2.4.9_hotfix1-x86.apk",
             "arch": "x86",
-            "size": 138777120
+            "size": 138791023
         },
         {
-            "file_name": "ZaliaBetter-2.4.7-x86_64.apk",
-            "uri": "https://github.com/soctrungkien/ZaliaBetter/releases/download/2.4.7/ZaliaBetter-2.4.7-x86_64.apk",
+            "file_name": "ZaliaBetter-2.4.9_hotfix1-x86_64.apk",
+            "uri": "https://github.com/soctrungkien/ZaliaBetter/releases/download/2.4.9_hotfix1/ZaliaBetter-2.4.9_hotfix1-x86_64.apk",
             "arch": "x86_64",
-            "size": 164252114
+            "size": 164266013
         },
         {
-            "file_name": "ZaliaBetter-2.4.7.apk",
-            "uri": "https://github.com/soctrungkien/ZaliaBetter/releases/download/2.4.7/ZaliaBetter-2.4.7.apk",
+            "file_name": "ZaliaBetter-2.4.9_hotfix1.apk",
+            "uri": "https://github.com/soctrungkien/ZaliaBetter/releases/download/2.4.9_hotfix1/ZaliaBetter-2.4.9_hotfix1.apk",
             "arch": "all",
-            "size": 306085512
+            "size": 306099627
         }
     ],
     "default_body": {
@@ -51,7 +51,7 @@
                 "title": "Release Notes",
                 "texts": [
                     {
-                        "text": "**Full Changelog**: https://github.com/soctrungkien/ZaliaBetter/commits/2.4.7"
+                        "text": "**Full Changelog**: https://github.com/soctrungkien/ZaliaBetter/commits/2.4.9_hotfix1"
                     }
                 ]
             }
