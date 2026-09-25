@@ -437,58 +437,31 @@ def create_file_entry(
 # ==========================================================
 
 files = [
-    # ------------------------------------------------------
-    # ARM64
-    # ------------------------------------------------------
-
     create_file_entry(
-        f"{LAUNCHER_NAME}-{VERSION}-arm64-v8a.apk",
+        f"{LAUNCHER_NAME}-{VERSION}{APK_SUFFIX}-arm64-v8a.apk",
         "arm64"
     ),
 
-    # ------------------------------------------------------
-    # ARM
-    # ------------------------------------------------------
-
     create_file_entry(
-        f"{LAUNCHER_NAME}-{VERSION}-armeabi-v7a.apk",
+        f"{LAUNCHER_NAME}-{VERSION}{APK_SUFFIX}-armeabi-v7a.apk",
         "arm"
     ),
 
-    # ------------------------------------------------------
-    # x86
-    # ------------------------------------------------------
-
     create_file_entry(
-        f"{LAUNCHER_NAME}-{VERSION}-x86.apk",
+        f"{LAUNCHER_NAME}-{VERSION}{APK_SUFFIX}-x86.apk",
         "x86"
     ),
 
-    # ------------------------------------------------------
-    # x86_64
-    # ------------------------------------------------------
-
     create_file_entry(
-        f"{LAUNCHER_NAME}-{VERSION}-x86_64.apk",
+        f"{LAUNCHER_NAME}-{VERSION}{APK_SUFFIX}-x86_64.apk",
         "x86_64"
     ),
-
-    # ------------------------------------------------------
-    # ALL
-    #
-    # Hotfix OFF:
-    # ZaliaBetter-2.6.apk
-    #
-    # Hotfix ON:
-    # ZaliaBetter-2.6_hotfix.apk
-    # ------------------------------------------------------
 
     create_file_entry(
         f"{LAUNCHER_NAME}-{VERSION}{APK_SUFFIX}.apk",
         "all"
     )
 ]
-
 
 # ==========================================================
 # BASE JSON
