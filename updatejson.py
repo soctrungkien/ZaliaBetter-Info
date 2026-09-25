@@ -26,29 +26,6 @@ OUTPUT_DIR = Path("v2")
 
 
 # ==========================================================
-# HOTFIX
-# ==========================================================
-
-# GitHub Actions:
-#
-# APK_HOTFIX=on
-#     -> ZaliaBetter-x.xx_hotfix.apk
-#
-# APK_HOTFIX=off
-#     -> ZaliaBetter-x.xx.apk
-
-HOTFIX = (
-    os.environ
-    .get("APK_HOTFIX", "off")
-    .strip()
-    .lower()
-    == "on"
-)
-
-APK_SUFFIX = "_hotfix" if HOTFIX else ""
-
-
-# ==========================================================
 # DOWNLOAD TEXT
 # ==========================================================
 
@@ -79,34 +56,37 @@ def get_file_size(url: str) -> int:
         )
 
         with urlopen(req) as response:
-            content_length = response.headers.get(
-                "Content-Length",
-                "0"
+            return int(
+                response.headers.get(
+                    "Content-Length",
+                    "0"
+                )
             )
-
-            return int(content_length)
 
     except HTTPError as error:
         print(
-            f"  Failed to check file size "
-            f"(HTTP {error.code}): {url}"
+            f"  HTTP {error.code}: "
+            f"cannot check file size"
         )
 
         return 0
 
     except Exception as error:
         print(
-            f"  Failed to check file size: {error}"
+            f"  Cannot check file size: {error}"
         )
 
         return 0
 
 
 # ==========================================================
-# PARSE GRADLE PROPERTIES
+# PARSE PROPERTIES
 # ==========================================================
 
-def parse_properties(text: str) -> dict[str, str]:
+def parse_properties(
+    text: str
+) -> dict[str, str]:
+
     props: dict[str, str] = {}
 
     for line in text.splitlines():
@@ -121,7 +101,10 @@ def parse_properties(text: str) -> dict[str, str]:
         if "=" not in line:
             continue
 
-        key, value = line.split("=", 1)
+        key, value = line.split(
+            "=",
+            1
+        )
 
         props[key.strip()] = value.strip()
 
@@ -129,7 +112,7 @@ def parse_properties(text: str) -> dict[str, str]:
 
 
 # ==========================================================
-# MARKDOWN -> CHUNKS
+# MARKDOWN TO CHUNKS
 # ==========================================================
 
 def markdown_to_chunks(
@@ -158,14 +141,18 @@ def markdown_to_chunks(
         )
 
         if heading_match:
-            title = heading_match.group(2).strip()
+            title = heading_match.group(
+                2
+            ).strip()
 
             current_chunk = {
                 "title": title,
                 "texts": []
             }
 
-            chunks.append(current_chunk)
+            chunks.append(
+                current_chunk
+            )
 
             continue
 
@@ -179,7 +166,9 @@ def markdown_to_chunks(
                 "texts": []
             }
 
-            chunks.append(current_chunk)
+            chunks.append(
+                current_chunk
+            )
 
         # --------------------------------------------------
         # Indentation
@@ -242,7 +231,10 @@ def markdown_to_chunks(
 # GET GITHUB RELEASE DATA
 # ==========================================================
 
-def get_release_data(version: str) -> dict:
+def get_release_data(
+    version: str
+) -> dict:
+
     url = RELEASE_API_URL.format(
         tag=version
     )
@@ -279,7 +271,7 @@ props = parse_properties(
 
 
 # ==========================================================
-# READ PROJECT INFORMATION
+# PROJECT INFORMATION
 # ==========================================================
 
 LAUNCHER_NAME = props.get(
@@ -302,10 +294,76 @@ HOME_URL = props.get(
     "https://github.com/soctrungkien/ZaliaBetter"
 )
 
-VERSION = props.get(
+
+# ==========================================================
+# VERSION
+# ==========================================================
+#
+# Example:
+#
+# launcher_version_name=2.6_hotfix
+#
+# becomes:
+#
+# RAW_VERSION = 2.6_hotfix
+# VERSION     = 2.6
+#
+# This allows the GitHub Release tag to remain:
+#
+# 2.6
+#
+# without changing gradle.properties.
+# ==========================================================
+
+RAW_VERSION = props.get(
     "launcher_version_name",
     "0.0.0"
 )
+
+VERSION = re.sub(
+    r"_hotfix$",
+    "",
+    RAW_VERSION,
+    flags=re.IGNORECASE
+)
+
+
+# ==========================================================
+# HOTFIX ON / OFF
+# ==========================================================
+#
+# GitHub Actions provides:
+#
+# APK_HOTFIX=on
+#
+# or:
+#
+# APK_HOTFIX=off
+#
+# This setting controls ONLY the APK filename.
+# ==========================================================
+
+HOTFIX = (
+    os.environ
+    .get(
+        "APK_HOTFIX",
+        "off"
+    )
+    .strip()
+    .lower()
+    == "on"
+)
+
+APK_SUFFIX = (
+    "_hotfix"
+    if HOTFIX
+    else ""
+)
+
+
+# ==========================================================
+# VERSION CODE
+# ==========================================================
 
 VERSION_CODE = int(
     props.get(
@@ -348,7 +406,7 @@ created_at = release_data.get(
 
 
 # ==========================================================
-# FILE ENTRY
+# CREATE FILE ENTRY
 # ==========================================================
 
 def create_file_entry(
@@ -364,15 +422,13 @@ def create_file_entry(
         f"Checking size: {filename}"
     )
 
-    size = get_file_size(
-        file_url
-    )
-
     return {
         "file_name": filename,
         "uri": file_url,
         "arch": arch,
-        "size": size
+        "size": get_file_size(
+            file_url
+        )
     }
 
 
@@ -381,25 +437,51 @@ def create_file_entry(
 # ==========================================================
 
 files = [
+    # ------------------------------------------------------
+    # ARM64
+    # ------------------------------------------------------
+
     create_file_entry(
         f"{LAUNCHER_NAME}-{VERSION}-arm64-v8a.apk",
         "arm64"
     ),
+
+    # ------------------------------------------------------
+    # ARM
+    # ------------------------------------------------------
 
     create_file_entry(
         f"{LAUNCHER_NAME}-{VERSION}-armeabi-v7a.apk",
         "arm"
     ),
 
+    # ------------------------------------------------------
+    # x86
+    # ------------------------------------------------------
+
     create_file_entry(
         f"{LAUNCHER_NAME}-{VERSION}-x86.apk",
         "x86"
     ),
 
+    # ------------------------------------------------------
+    # x86_64
+    # ------------------------------------------------------
+
     create_file_entry(
         f"{LAUNCHER_NAME}-{VERSION}-x86_64.apk",
         "x86_64"
     ),
+
+    # ------------------------------------------------------
+    # ALL
+    #
+    # Hotfix OFF:
+    # ZaliaBetter-2.6.apk
+    #
+    # Hotfix ON:
+    # ZaliaBetter-2.6_hotfix.apk
+    # ------------------------------------------------------
 
     create_file_entry(
         f"{LAUNCHER_NAME}-{VERSION}{APK_SUFFIX}.apk",
@@ -484,15 +566,17 @@ OUTPUT_DIR.mkdir(
 
 
 # ==========================================================
-# OUTPUT FILES
+# OUTPUT PATHS
 # ==========================================================
 
 latest_version_path = (
-    OUTPUT_DIR / "latest_version.json"
+    OUTPUT_DIR /
+    "latest_version.json"
 )
 
 latest_version_md_path = (
-    OUTPUT_DIR / "latest_version_md.json"
+    OUTPUT_DIR /
+    "latest_version_md.json"
 )
 
 
@@ -539,6 +623,18 @@ with open(
 print()
 
 print(
+    "=========================================="
+)
+
+print(
+    "Update completed"
+)
+
+print(
+    "=========================================="
+)
+
+print(
     f"Launcher: {APP_NAME}"
 )
 
@@ -547,7 +643,11 @@ print(
 )
 
 print(
-    f"Version: {VERSION}"
+    f"Raw Version: {RAW_VERSION}"
+)
+
+print(
+    f"Release Version: {VERSION}"
 )
 
 print(
@@ -563,12 +663,15 @@ print(
 )
 
 print(
-    f"APK Suffix: {APK_SUFFIX or '(none)'}"
+    f"APK Suffix: "
+    f"{APK_SUFFIX if APK_SUFFIX else '(none)'}"
 )
 
 print()
 
-print("Generated:")
+print(
+    "Generated:"
+)
 
 print(
     f" - {latest_version_path}"
@@ -580,10 +683,18 @@ print(
 
 print()
 
-print("APK files:")
+print(
+    "APK files:"
+)
 
 for file_info in files:
     print(
         f" - {file_info['file_name']} "
         f"({file_info['size']} bytes)"
     )
+
+print()
+
+print(
+    "=========================================="
+)
