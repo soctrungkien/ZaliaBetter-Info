@@ -38,10 +38,10 @@
             "size": 0
         },
         {
-            "file_name": "ZaliaBetter-2.6_hotfix.apk",
-            "uri": "https://github.com/soctrungkien/ZaliaBetter/releases/download/2.6/ZaliaBetter-2.6_hotfix.apk",
+            "file_name": "ZaliaBetter-2.6.apk",
+            "uri": "https://github.com/soctrungkien/ZaliaBetter/releases/download/2.6/ZaliaBetter-2.6.apk",
             "arch": "all",
-            "size": 354441121
+            "size": 0
         }
     ],
     "default_body": {
