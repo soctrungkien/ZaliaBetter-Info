@@ -2,6 +2,15 @@ name: Update json
 
 on:
   workflow_dispatch:
+    inputs:
+      hotfix:
+        description: "Hotfix"
+        required: true
+        type: choice
+        default: "off"
+        options:
+          - "off"
+          - "on"
 
 permissions:
   contents: write
@@ -9,14 +18,18 @@ permissions:
 jobs:
   update:
     runs-on: ubuntu-latest
+
+    env:
+      APK_HOTFIX: ${{ inputs.hotfix }}
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
+          python-version: '3.14'
 
       - name: Install Python dependencies
         run: |
