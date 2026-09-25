@@ -1,3 +1,4 @@
+import os
 import json
 import re
 from copy import deepcopy
@@ -5,14 +6,51 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 
-GRADLE_URL = "https://raw.githubusercontent.com/soctrungkien/ZaliaBetter/main/ZalithLauncher/gradle.properties"
+
+# ==========================================================
+# CONFIGURATION
+# ==========================================================
+
+GRADLE_URL = (
+    "https://raw.githubusercontent.com/"
+    "soctrungkien/ZaliaBetter/main/"
+    "ZalithLauncher/gradle.properties"
+)
 
 RELEASE_API_URL = (
-    "https://api.github.com/repos/soctrungkien/ZaliaBetter/releases/tags/{tag}"
+    "https://api.github.com/repos/"
+    "soctrungkien/ZaliaBetter/releases/tags/{tag}"
 )
 
 OUTPUT_DIR = Path("v2")
 
+
+# ==========================================================
+# HOTFIX
+# ==========================================================
+
+# GitHub Actions:
+#
+# APK_HOTFIX=on
+#     -> ZaliaBetter-x.xx_hotfix.apk
+#
+# APK_HOTFIX=off
+#     -> ZaliaBetter-x.xx.apk
+
+HOTFIX = (
+    os.environ
+    .get("APK_HOTFIX", "off")
+    .strip()
+    .lower()
+    == "on"
+)
+
+APK_SUFFIX = "_hotfix" if HOTFIX else ""
+
+
+# ==========================================================
+# DOWNLOAD TEXT
+# ==========================================================
 
 def download_text(url: str) -> str:
     req = Request(
@@ -26,6 +64,10 @@ def download_text(url: str) -> str:
         return response.read().decode("utf-8")
 
 
+# ==========================================================
+# GET FILE SIZE
+# ==========================================================
+
 def get_file_size(url: str) -> int:
     try:
         req = Request(
@@ -37,22 +79,35 @@ def get_file_size(url: str) -> int:
         )
 
         with urlopen(req) as response:
-            return int(
-                response.headers.get(
-                    "Content-Length",
-                    0
-                )
+            content_length = response.headers.get(
+                "Content-Length",
+                "0"
             )
 
-    except HTTPError:
+            return int(content_length)
+
+    except HTTPError as error:
+        print(
+            f"  Failed to check file size "
+            f"(HTTP {error.code}): {url}"
+        )
+
         return 0
 
-    except Exception:
+    except Exception as error:
+        print(
+            f"  Failed to check file size: {error}"
+        )
+
         return 0
 
 
-def parse_properties(text: str) -> dict:
-    props = {}
+# ==========================================================
+# PARSE GRADLE PROPERTIES
+# ==========================================================
+
+def parse_properties(text: str) -> dict[str, str]:
+    props: dict[str, str] = {}
 
     for line in text.splitlines():
         line = line.strip()
@@ -73,10 +128,17 @@ def parse_properties(text: str) -> dict:
     return props
 
 
-def markdown_to_chunks(markdown_text: str) -> list:
-    chunks = []
+# ==========================================================
+# MARKDOWN -> CHUNKS
+# ==========================================================
 
-    current_chunk = None
+def markdown_to_chunks(
+    markdown_text: str
+) -> list[dict]:
+
+    chunks: list[dict] = []
+
+    current_chunk: dict | None = None
 
     lines = markdown_text.splitlines()
 
@@ -85,6 +147,10 @@ def markdown_to_chunks(markdown_text: str) -> list:
 
         if not line.strip():
             continue
+
+        # --------------------------------------------------
+        # Heading
+        # --------------------------------------------------
 
         heading_match = re.match(
             r"^(#{1,6})\s+(.+)$",
@@ -103,6 +169,10 @@ def markdown_to_chunks(markdown_text: str) -> list:
 
             continue
 
+        # --------------------------------------------------
+        # Text before first heading
+        # --------------------------------------------------
+
         if current_chunk is None:
             current_chunk = {
                 "title": "Release Notes",
@@ -110,6 +180,10 @@ def markdown_to_chunks(markdown_text: str) -> list:
             }
 
             chunks.append(current_chunk)
+
+        # --------------------------------------------------
+        # Indentation
+        # --------------------------------------------------
 
         indentation = 0
 
@@ -120,16 +194,26 @@ def markdown_to_chunks(markdown_text: str) -> list:
         elif line.startswith("- "):
             line = line[2:]
 
+        # --------------------------------------------------
+        # Markdown links
+        # --------------------------------------------------
+
         links = []
 
         for text, link in re.findall(
             r"\[([^\]]+)\]\(([^)]+)\)",
             line
         ):
-            links.append({
-                "text": text,
-                "link": link
-            })
+            links.append(
+                {
+                    "text": text,
+                    "link": link
+                }
+            )
+
+        # --------------------------------------------------
+        # Clean markdown links
+        # --------------------------------------------------
 
         clean_text = re.sub(
             r"\[([^\]]+)\]\(([^)]+)\)",
@@ -154,6 +238,10 @@ def markdown_to_chunks(markdown_text: str) -> list:
     return chunks
 
 
+# ==========================================================
+# GET GITHUB RELEASE DATA
+# ==========================================================
+
 def get_release_data(version: str) -> dict:
     url = RELEASE_API_URL.format(
         tag=version
@@ -162,7 +250,8 @@ def get_release_data(version: str) -> dict:
     req = Request(
         url,
         headers={
-            "User-Agent": "Mozilla/5.0"
+            "User-Agent": "Mozilla/5.0",
+            "Accept": "application/vnd.github+json"
         }
     )
 
@@ -172,7 +261,13 @@ def get_release_data(version: str) -> dict:
         )
 
 
-print("Downloading gradle.properties...")
+# ==========================================================
+# DOWNLOAD GRADLE.PROPERTIES
+# ==========================================================
+
+print(
+    "Downloading gradle.properties..."
+)
 
 gradle_text = download_text(
     GRADLE_URL
@@ -181,6 +276,11 @@ gradle_text = download_text(
 props = parse_properties(
     gradle_text
 )
+
+
+# ==========================================================
+# READ PROJECT INFORMATION
+# ==========================================================
 
 LAUNCHER_NAME = props.get(
     "launcher_name",
@@ -214,11 +314,23 @@ VERSION_CODE = int(
     )
 )
 
+
+# ==========================================================
+# RELEASE URL
+# ==========================================================
+
 BASE_RELEASE_URL = (
     f"{HOME_URL}/releases/download/{VERSION}"
 )
 
-print("Downloading release data...")
+
+# ==========================================================
+# RELEASE DATA
+# ==========================================================
+
+print(
+    f"Downloading release data for tag: {VERSION}"
+)
 
 release_data = get_release_data(
     VERSION
@@ -235,6 +347,10 @@ created_at = release_data.get(
 )
 
 
+# ==========================================================
+# FILE ENTRY
+# ==========================================================
+
 def create_file_entry(
     filename: str,
     arch: str
@@ -248,15 +364,21 @@ def create_file_entry(
         f"Checking size: {filename}"
     )
 
+    size = get_file_size(
+        file_url
+    )
+
     return {
         "file_name": filename,
         "uri": file_url,
         "arch": arch,
-        "size": get_file_size(
-            file_url
-        )
+        "size": size
     }
 
+
+# ==========================================================
+# APK FILES
+# ==========================================================
 
 files = [
     create_file_entry(
@@ -280,10 +402,15 @@ files = [
     ),
 
     create_file_entry(
-        f"{LAUNCHER_NAME}-{VERSION}.apk",
+        f"{LAUNCHER_NAME}-{VERSION}{APK_SUFFIX}.apk",
         "all"
     )
 ]
+
+
+# ==========================================================
+# BASE JSON
+# ==========================================================
 
 base_json = {
     "code": VERSION_CODE,
@@ -309,6 +436,11 @@ base_json = {
     "files": files
 }
 
+
+# ==========================================================
+# LATEST VERSION JSON
+# ==========================================================
+
 latest_version = deepcopy(
     base_json
 )
@@ -323,6 +455,11 @@ latest_version["default_body"] = {
 
 latest_version["bodies"] = []
 
+
+# ==========================================================
+# LATEST VERSION MARKDOWN JSON
+# ==========================================================
+
 latest_version_md = deepcopy(
     base_json
 )
@@ -335,10 +472,20 @@ latest_version_md["default_body"] = {
 
 latest_version_md["bodies"] = []
 
+
+# ==========================================================
+# OUTPUT DIRECTORY
+# ==========================================================
+
 OUTPUT_DIR.mkdir(
     parents=True,
     exist_ok=True
 )
+
+
+# ==========================================================
+# OUTPUT FILES
+# ==========================================================
 
 latest_version_path = (
     OUTPUT_DIR / "latest_version.json"
@@ -347,6 +494,11 @@ latest_version_path = (
 latest_version_md_path = (
     OUTPUT_DIR / "latest_version_md.json"
 )
+
+
+# ==========================================================
+# WRITE latest_version.json
+# ==========================================================
 
 with open(
     latest_version_path,
@@ -361,6 +513,11 @@ with open(
         indent=4
     )
 
+
+# ==========================================================
+# WRITE latest_version_md.json
+# ==========================================================
+
 with open(
     latest_version_md_path,
     "w",
@@ -373,6 +530,11 @@ with open(
         ensure_ascii=False,
         indent=4
     )
+
+
+# ==========================================================
+# RESULT
+# ==========================================================
 
 print()
 
@@ -396,6 +558,14 @@ print(
     f"Created At: {created_at}"
 )
 
+print(
+    f"Hotfix: {'ON' if HOTFIX else 'OFF'}"
+)
+
+print(
+    f"APK Suffix: {APK_SUFFIX or '(none)'}"
+)
+
 print()
 
 print("Generated:")
@@ -407,3 +577,13 @@ print(
 print(
     f" - {latest_version_md_path}"
 )
+
+print()
+
+print("APK files:")
+
+for file_info in files:
+    print(
+        f" - {file_info['file_name']} "
+        f"({file_info['size']} bytes)"
+    )
