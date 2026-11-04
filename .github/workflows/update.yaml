@@ -1,6 +1,15 @@
 name: Update json
 
 on:
+  push:
+    branches:
+      - main
+      - master
+    paths-ignore:
+      - 'v2/latest_version_md.json'
+      - 'v2/latest_version.json'
+  schedule:
+    - cron: '0 0 * * *'
   workflow_dispatch:
 
 permissions:
